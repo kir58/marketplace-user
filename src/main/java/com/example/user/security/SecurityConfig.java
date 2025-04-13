@@ -5,9 +5,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.    SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -17,7 +18,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
-        // Создаем конфигурацию CORS
+
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedOrigin("http://localhost:3000"); // Разрешаем запросы с клиента
         corsConfiguration.addAllowedHeader("*"); // Разрешаем все заголовки
@@ -28,14 +29,14 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration); // Применяем настройки ко всем запросам
 
-        // Настройка безопасности
         http
                 // поправить
                 .cors().configurationSource(source) // Используем нашу настройку CORS
                 .and()
-                .csrf().disable() // Отключаем CSRF
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Разрешаем доступ к этим эндпоинтам без аутентификации
+                        .requestMatchers("/api/auth/**","/h2-console/**").permitAll() // Разрешаем доступ к этим эндпоинтам без аутентификации
+                        .requestMatchers("/api/users/profile").authenticated() // 👈 Обязательно!
                         .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Добавляем фильтр для JWT
