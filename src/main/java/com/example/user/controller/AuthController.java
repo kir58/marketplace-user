@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/api/auth")
 
@@ -47,11 +49,13 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtService.generateToken(request.getUsername());
 
+            int maxAge = (int) (request.isRemember() ?  Duration.ofDays(7).toSeconds() : Duration.ofHours(1).toSeconds());
+
             ResponseCookie cookie = ResponseCookie.from("jwt", token)
                     .httpOnly(true)
                     .secure(false) // false для localhost
                     .path("/")
-                    .maxAge(24 * 60 * 60)
+                    .maxAge(maxAge)
                     .sameSite("Lax")
                     .build();
 
