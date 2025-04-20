@@ -71,7 +71,6 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
         try {
-            // 1. Создаем нового пользователя
             User newUser = new User();
             newUser.setUsername(request.getUsername());
             newUser.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -84,21 +83,8 @@ public class AuthController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String token = jwtService.generateToken(request.getUsername());
-
-            ResponseCookie cookie = ResponseCookie.from("jwt", token)
-                    .httpOnly(true)
-                    .secure(false)
-                    .path("/")
-                    .maxAge(24 * 60 * 60)
-                    .sameSite("Lax")
-                    .build();
-
-            response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
             return ResponseEntity.ok("Registration success");
         } catch (Exception ex) {
-            ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + ex.getMessage());
         }
     }
